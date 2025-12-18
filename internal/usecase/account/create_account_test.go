@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/nubank/pismo-code-assessment/internal/domain"
-	"github.com/nubank/pismo-code-assessment/internal/repository/mocks"
+	"github.com/nubank/pismo-code-assessment/internal/domain/mocks"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 )

@@ -4,14 +4,13 @@ import (
 	"context"
 
 	"github.com/nubank/pismo-code-assessment/internal/domain"
-	"github.com/nubank/pismo-code-assessment/internal/repository"
 )
 
 type CreateAccount struct {
-	repo repository.AccountRepository
+	repo domain.AccountRepository
 }
 
-func NewCreateAccount(repo repository.AccountRepository) *CreateAccount {
+func NewCreateAccount(repo domain.AccountRepository) *CreateAccount {
 	return &CreateAccount{repo: repo}
 }
 
