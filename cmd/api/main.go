@@ -1,0 +1,46 @@
+package main
+
+import (
+	"context"
+	"errors"
+	"log"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
+
+	"github.com/nubank/pismo-code-assessment/internal/infrastructure/config"
+	"github.com/nubank/pismo-code-assessment/internal/infrastructure/http/handler"
+	"github.com/nubank/pismo-code-assessment/internal/infrastructure/http/router"
+	"github.com/nubank/pismo-code-assessment/internal/infrastructure/http/server"
+)
+
+func main() {
+	cfg := config.Load()
+
+	accountHandler := handler.NewAccountHandler()
+
+	r := router.New(accountHandler)
+
+	srv := server.New(cfg.ServerPort, r)
+
+	go func() {
+		if err := srv.Start(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			log.Fatalf("Failed to start server: %v", err)
+		}
+	}()
+
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+
+	log.Println("Shutting down server...")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	if err := srv.Shutdown(ctx); err != nil {
+		log.Fatalf("Server forced to shutdown: %v", err)
+	}
+}
