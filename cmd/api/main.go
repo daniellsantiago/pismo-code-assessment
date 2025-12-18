@@ -23,7 +23,7 @@ func main() {
 
 	r := router.New(accountHandler)
 
-	srv := server.New(cfg.ServerPort, r)
+	srv := server.New(cfg.Server.Port, r)
 
 	go func() {
 		if err := srv.Start(); err != nil && !errors.Is(err, http.ErrServerClosed) {

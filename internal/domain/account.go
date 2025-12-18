@@ -4,6 +4,7 @@ import "errors"
 
 var (
 	ErrInvalidDocumentNumber = errors.New("document number is required")
+	ErrAccountAlreadyExists  = errors.New("account already exists")
 )
 
 type Account struct {
