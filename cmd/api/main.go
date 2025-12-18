@@ -11,15 +11,25 @@ import (
 	"time"
 
 	"github.com/nubank/pismo-code-assessment/internal/infrastructure/config"
+	"github.com/nubank/pismo-code-assessment/internal/infrastructure/database"
 	"github.com/nubank/pismo-code-assessment/internal/infrastructure/http/handler"
 	"github.com/nubank/pismo-code-assessment/internal/infrastructure/http/router"
 	"github.com/nubank/pismo-code-assessment/internal/infrastructure/http/server"
+	"github.com/nubank/pismo-code-assessment/internal/usecase/account"
 )
 
 func main() {
 	cfg := config.Load()
 
-	accountHandler := handler.NewAccountHandler()
+	db, err := database.NewPostgresDB(cfg.Database)
+	if err != nil {
+		log.Fatalf("Failed to connect to database: %v", err)
+	}
+	defer db.Close()
+
+	accountRepo := database.NewAccountRepository(db)
+	createAccount := account.NewCreateAccount(accountRepo)
+	accountHandler := handler.NewAccountHandler(createAccount)
 
 	r := router.New(accountHandler)
 
