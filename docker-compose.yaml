@@ -1,4 +1,16 @@
 services:
+  api:
+    build: .
+    container_name: pismo-api
+    environment:
+      SERVER_PORT: "8080"
+      DATABASE_URL: "postgres://pismo:pismo@postgres:5432/pismo?sslmode=disable"
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
   postgres:
     image: postgres:16-alpine
     container_name: pismo-postgres
@@ -10,6 +22,12 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./internal/infrastructure/database/migrations:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U pismo -d pismo" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
 volumes:
   postgres_data:

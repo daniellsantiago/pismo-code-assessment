@@ -30,6 +30,19 @@ func (h *TransactionHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if req.AccountID == 0 {
+		response.Error(w, http.StatusBadRequest, "account_id is required")
+		return
+	}
+	if req.OperationTypeID == 0 {
+		response.Error(w, http.StatusBadRequest, "operation_type_id is required")
+		return
+	}
+	if req.Amount == 0 {
+		response.Error(w, http.StatusBadRequest, "amount is required")
+		return
+	}
+
 	transaction, err := h.createTransaction.Execute(r.Context(), req.AccountID, req.OperationTypeID, req.Amount)
 	if err != nil {
 		response.HandleError(w, err)

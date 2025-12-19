@@ -39,6 +39,11 @@ func (h *AccountHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if req.DocumentNumber == "" {
+		response.Error(w, http.StatusBadRequest, "document_number is required")
+		return
+	}
+
 	account, err := h.createAccount.Execute(r.Context(), req.DocumentNumber)
 	if err != nil {
 		response.HandleError(w, err)

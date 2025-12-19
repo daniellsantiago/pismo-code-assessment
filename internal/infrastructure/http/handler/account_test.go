@@ -58,18 +58,14 @@ func TestAccountHandler_Create(t *testing.T) {
 		assert.Equal(t, http.StatusBadRequest, rec.Code)
 	})
 
-	t.Run("returns unprocessable entity when document number is empty", func(t *testing.T) {
-		mockCreator.EXPECT().
-			Execute(gomock.Any(), "").
-			Return(nil, domain.ErrInvalidDocumentNumber)
-
+	t.Run("returns bad request when document number is empty", func(t *testing.T) {
 		body := bytes.NewBufferString(`{"document_number": ""}`)
 		req := httptest.NewRequest(http.MethodPost, "/accounts", body)
 		rec := httptest.NewRecorder()
 
 		handler.Create(rec, req)
 
-		assert.Equal(t, http.StatusUnprocessableEntity, rec.Code)
+		assert.Equal(t, http.StatusBadRequest, rec.Code)
 	})
 
 	t.Run("returns unprocessable entity when account already exists", func(t *testing.T) {

@@ -91,18 +91,34 @@ func TestTransactionHandler_Create(t *testing.T) {
 		assert.Equal(t, http.StatusUnprocessableEntity, rec.Code)
 	})
 
-	t.Run("returns unprocessable entity when amount is invalid", func(t *testing.T) {
-		mockCreator.EXPECT().
-			Execute(gomock.Any(), int64(1), 1, 0.0).
-			Return(nil, domain.ErrInvalidAmount)
-
-		body := bytes.NewBufferString(`{"account_id": 1, "operation_type_id": 1, "amount": 0}`)
+	t.Run("returns bad request when account_id is missing", func(t *testing.T) {
+		body := bytes.NewBufferString(`{"operation_type_id": 1, "amount": 50.0}`)
 		req := httptest.NewRequest(http.MethodPost, "/transactions", body)
 		rec := httptest.NewRecorder()
 
 		handler.Create(rec, req)
 
-		assert.Equal(t, http.StatusUnprocessableEntity, rec.Code)
+		assert.Equal(t, http.StatusBadRequest, rec.Code)
+	})
+
+	t.Run("returns bad request when operation_type_id is missing", func(t *testing.T) {
+		body := bytes.NewBufferString(`{"account_id": 1, "amount": 50.0}`)
+		req := httptest.NewRequest(http.MethodPost, "/transactions", body)
+		rec := httptest.NewRecorder()
+
+		handler.Create(rec, req)
+
+		assert.Equal(t, http.StatusBadRequest, rec.Code)
+	})
+
+	t.Run("returns bad request when amount is missing", func(t *testing.T) {
+		body := bytes.NewBufferString(`{"account_id": 1, "operation_type_id": 1}`)
+		req := httptest.NewRequest(http.MethodPost, "/transactions", body)
+		rec := httptest.NewRecorder()
+
+		handler.Create(rec, req)
+
+		assert.Equal(t, http.StatusBadRequest, rec.Code)
 	})
 
 	t.Run("returns internal server error when error is unknown", func(t *testing.T) {
