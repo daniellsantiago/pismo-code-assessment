@@ -1,0 +1,238 @@
+openapi: 3.0.3
+info:
+  title: Pismo Code Assessment API
+  description: REST API for managing customer accounts and transactions
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8080
+    description: Local development server
+
+paths:
+  /accounts:
+    post:
+      summary: Create a new account
+      description: Creates a new account with the provided document number
+      tags:
+        - Accounts
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAccountRequest'
+            example:
+              document_number: "12345678900"
+      responses:
+        '201':
+          description: Account created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountResponse'
+              example:
+                account_id: 1
+                document_number: "12345678900"
+        '400':
+          description: Bad request - invalid JSON or missing required fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "document_number is required"
+        '422':
+          description: Unprocessable entity - account already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "account already exists"
+
+  /accounts/{accountId}:
+    get:
+      summary: Get account by ID
+      description: Retrieves an existing account by its ID
+      tags:
+        - Accounts
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          description: The account ID
+          schema:
+            type: integer
+            format: int64
+          example: 1
+      responses:
+        '200':
+          description: Account retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountResponse'
+              example:
+                account_id: 1
+                document_number: "12345678900"
+        '400':
+          description: Bad request - invalid account ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "invalid account id"
+        '404':
+          description: Account not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "account was not found"
+
+  /transactions:
+    post:
+      summary: Create a new transaction
+      description: |
+        Creates a new transaction for an account.
+        
+        Operation Types:
+        - 1: PURCHASE (stored as negative amount)
+        - 2: INSTALLMENT PURCHASE (stored as negative amount)
+        - 3: WITHDRAWAL (stored as negative amount)
+        - 4: PAYMENT (stored as positive amount)
+      tags:
+        - Transactions
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTransactionRequest'
+            example:
+              account_id: 1
+              operation_type_id: 4
+              amount: 123.45
+      responses:
+        '201':
+          description: Transaction created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionResponse'
+              example:
+                transaction_id: 1
+                account_id: 1
+                operation_type_id: 4
+                amount: 123.45
+        '400':
+          description: Bad request - invalid JSON or missing required fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "account_id is required"
+        '404':
+          description: Account not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "account was not found"
+        '422':
+          description: Unprocessable entity - invalid operation type or amount
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "invalid operation type"
+
+components:
+  schemas:
+    CreateAccountRequest:
+      type: object
+      required:
+        - document_number
+      properties:
+        document_number:
+          type: string
+          description: Document number that uniquely identifies the account owner
+          example: "12345678900"
+
+    AccountResponse:
+      type: object
+      properties:
+        account_id:
+          type: integer
+          format: int64
+          description: Unique identifier for the account
+          example: 1
+        document_number:
+          type: string
+          description: Document number of the account owner
+          example: "12345678900"
+
+    CreateTransactionRequest:
+      type: object
+      required:
+        - account_id
+        - operation_type_id
+        - amount
+      properties:
+        account_id:
+          type: integer
+          format: int64
+          description: ID of the account owner
+          example: 1
+        operation_type_id:
+          type: integer
+          description: |
+            Type of operation:
+            1 = PURCHASE
+            2 = INSTALLMENT PURCHASE
+            3 = WITHDRAWAL
+            4 = PAYMENT
+          enum: [1, 2, 3, 4]
+          example: 4
+        amount:
+          type: number
+          format: double
+          description: Transaction amount (must be positive, will be negated for debit operations)
+          example: 123.45
+
+    TransactionResponse:
+      type: object
+      properties:
+        transaction_id:
+          type: integer
+          format: int64
+          description: Unique identifier for the transaction
+          example: 1
+        account_id:
+          type: integer
+          format: int64
+          description: ID of the account owner
+          example: 1
+        operation_type_id:
+          type: integer
+          description: Type of operation
+          example: 4
+        amount:
+          type: number
+          format: double
+          description: Transaction amount (negative for debits, positive for credits)
+          example: 123.45
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error message
+          example: "document_number is required"
+
