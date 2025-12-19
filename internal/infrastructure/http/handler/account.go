@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"encoding/json"
+	"log/slog"
 	"net/http"
 	"strconv"
 
@@ -23,18 +24,23 @@ type accountGetter interface {
 type AccountHandler struct {
 	createAccount accountCreator
 	getAccount    accountGetter
+	logger        *slog.Logger
 }
 
-func NewAccountHandler(createAccount accountCreator, getAccount accountGetter) *AccountHandler {
+func NewAccountHandler(createAccount accountCreator, getAccount accountGetter, logger *slog.Logger) *AccountHandler {
 	return &AccountHandler{
 		createAccount: createAccount,
 		getAccount:    getAccount,
+		logger:        logger,
 	}
 }
 
 func (h *AccountHandler) Create(w http.ResponseWriter, r *http.Request) {
 	var req dto.CreateAccountRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		h.logger.Error("failed to decode request body",
+			slog.String("error", err.Error()),
+		)
 		response.Error(w, http.StatusBadRequest, "invalid request body")
 		return
 	}
@@ -46,6 +52,10 @@ func (h *AccountHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	account, err := h.createAccount.Execute(r.Context(), req.DocumentNumber)
 	if err != nil {
+		h.logger.Error("failed to create account",
+			slog.String("document_number", req.DocumentNumber),
+			slog.String("error", err.Error()),
+		)
 		response.HandleError(w, err)
 		return
 	}
@@ -66,6 +76,10 @@ func (h *AccountHandler) Get(w http.ResponseWriter, r *http.Request) {
 
 	account, err := h.getAccount.Execute(r.Context(), accountID)
 	if err != nil {
+		h.logger.Error("failed to get account",
+			slog.Int64("account_id", accountID),
+			slog.String("error", err.Error()),
+		)
 		response.HandleError(w, err)
 		return
 	}

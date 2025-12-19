@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"encoding/json"
+	"log/slog"
 	"net/http"
 
 	"github.com/nubank/pismo-code-assessment/internal/domain"
@@ -17,15 +18,22 @@ type transactionCreator interface {
 
 type TransactionHandler struct {
 	createTransaction transactionCreator
+	logger            *slog.Logger
 }
 
-func NewTransactionHandler(createTransaction transactionCreator) *TransactionHandler {
-	return &TransactionHandler{createTransaction: createTransaction}
+func NewTransactionHandler(createTransaction transactionCreator, logger *slog.Logger) *TransactionHandler {
+	return &TransactionHandler{
+		createTransaction: createTransaction,
+		logger:            logger,
+	}
 }
 
 func (h *TransactionHandler) Create(w http.ResponseWriter, r *http.Request) {
 	var req dto.CreateTransactionRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		h.logger.Error("failed to decode request body",
+			slog.String("error", err.Error()),
+		)
 		response.Error(w, http.StatusBadRequest, "invalid request body")
 		return
 	}
@@ -45,6 +53,12 @@ func (h *TransactionHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	transaction, err := h.createTransaction.Execute(r.Context(), req.AccountID, req.OperationTypeID, req.Amount)
 	if err != nil {
+		h.logger.Error("failed to create transaction",
+			slog.Int64("account_id", req.AccountID),
+			slog.Int("operation_type_id", req.OperationTypeID),
+			slog.Float64("amount", req.Amount),
+			slog.String("error", err.Error()),
+		)
 		response.HandleError(w, err)
 		return
 	}

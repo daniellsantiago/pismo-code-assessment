@@ -7,8 +7,9 @@ import (
 )
 
 type Config struct {
-	Server   ServerConfig
-	Database DatabaseConfig
+	Environment string
+	Server      ServerConfig
+	Database    DatabaseConfig
 }
 
 type ServerConfig struct {
@@ -25,6 +26,7 @@ type DatabaseConfig struct {
 
 func Load() *Config {
 	return &Config{
+		Environment: getEnv("ENVIRONMENT", "development"),
 		Server: ServerConfig{
 			Port: getEnv("SERVER_PORT", "8080"),
 		},

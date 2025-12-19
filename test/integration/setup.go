@@ -3,6 +3,8 @@ package integration
 import (
 	"context"
 	"database/sql"
+	"io"
+	"log/slog"
 	"net/http/httptest"
 	"path/filepath"
 	"testing"
@@ -58,6 +60,9 @@ func SetupTestServer(t *testing.T, ctx context.Context) *TestServer {
 	db, err := sql.Open("postgres", connStr)
 	require.NoError(t, err)
 
+	// Logger (discards output for tests)
+	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
+
 	// Repositories
 	accountRepo := database.NewAccountRepository(db)
 	transactionRepo := database.NewTransactionRepository(db)
@@ -65,11 +70,11 @@ func SetupTestServer(t *testing.T, ctx context.Context) *TestServer {
 	// Account use cases and handler
 	createAccount := account.NewCreateAccount(accountRepo)
 	getAccount := account.NewGetAccount(accountRepo)
-	accountHandler := handler.NewAccountHandler(createAccount, getAccount)
+	accountHandler := handler.NewAccountHandler(createAccount, getAccount, logger)
 
 	// Transaction use cases and handler
 	createTransaction := transaction.NewCreateTransaction(transactionRepo)
-	transactionHandler := handler.NewTransactionHandler(createTransaction)
+	transactionHandler := handler.NewTransactionHandler(createTransaction, logger)
 
 	r := router.New(accountHandler, transactionHandler)
 
