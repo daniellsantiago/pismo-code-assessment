@@ -16,6 +16,7 @@ import (
 	"github.com/nubank/pismo-code-assessment/internal/infrastructure/http/router"
 	"github.com/nubank/pismo-code-assessment/internal/infrastructure/http/server"
 	"github.com/nubank/pismo-code-assessment/internal/usecase/account"
+	"github.com/nubank/pismo-code-assessment/internal/usecase/transaction"
 )
 
 func main() {
@@ -27,12 +28,20 @@ func main() {
 	}
 	defer db.Close()
 
+	// Repositories
 	accountRepo := database.NewAccountRepository(db)
+	transactionRepo := database.NewTransactionRepository(db)
+
+	// Account use cases and handler
 	createAccount := account.NewCreateAccount(accountRepo)
 	getAccount := account.NewGetAccount(accountRepo)
 	accountHandler := handler.NewAccountHandler(createAccount, getAccount)
 
-	r := router.New(accountHandler)
+	// Transaction use cases and handler
+	createTransaction := transaction.NewCreateTransaction(transactionRepo)
+	transactionHandler := handler.NewTransactionHandler(createTransaction)
+
+	r := router.New(accountHandler, transactionHandler)
 
 	srv := server.New(cfg.Server.Port, r)
 

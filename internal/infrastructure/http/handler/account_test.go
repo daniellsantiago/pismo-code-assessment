@@ -154,7 +154,7 @@ func TestAccountHandler_Get(t *testing.T) {
 		assert.Equal(t, http.StatusNotFound, rec.Code)
 	})
 
-	t.Run("returns internal server error when repository fails", func(t *testing.T) {
+	t.Run("returns internal server error when error is unknown", func(t *testing.T) {
 		mockGetter.EXPECT().
 			Execute(gomock.Any(), int64(1)).
 			Return(nil, errors.New("database error"))

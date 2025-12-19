@@ -18,6 +18,7 @@ import (
 	"github.com/nubank/pismo-code-assessment/internal/infrastructure/http/handler"
 	"github.com/nubank/pismo-code-assessment/internal/infrastructure/http/router"
 	"github.com/nubank/pismo-code-assessment/internal/usecase/account"
+	"github.com/nubank/pismo-code-assessment/internal/usecase/transaction"
 )
 
 type TestServer struct {
@@ -36,7 +37,10 @@ func SetupTestServer(t *testing.T, ctx context.Context) *TestServer {
 		postgres.WithDatabase("pismo_test"),
 		postgres.WithUsername("pismo"),
 		postgres.WithPassword("pismo"),
-		postgres.WithInitScripts(filepath.Join("..", "..", "internal", "infrastructure", "database", "migrations", "001_create_accounts.up.sql")),
+		postgres.WithInitScripts(
+			filepath.Join("..", "..", "internal", "infrastructure", "database", "migrations", "001_create_accounts.up.sql"),
+			filepath.Join("..", "..", "internal", "infrastructure", "database", "migrations", "002_create_transactions.up.sql"),
+		),
 		testcontainers.WithWaitStrategy(
 			wait.ForLog("database system is ready to accept connections").
 				WithOccurrence(2).
@@ -54,11 +58,20 @@ func SetupTestServer(t *testing.T, ctx context.Context) *TestServer {
 	db, err := sql.Open("postgres", connStr)
 	require.NoError(t, err)
 
+	// Repositories
 	accountRepo := database.NewAccountRepository(db)
+	transactionRepo := database.NewTransactionRepository(db)
+
+	// Account use cases and handler
 	createAccount := account.NewCreateAccount(accountRepo)
 	getAccount := account.NewGetAccount(accountRepo)
 	accountHandler := handler.NewAccountHandler(createAccount, getAccount)
-	r := router.New(accountHandler)
+
+	// Transaction use cases and handler
+	createTransaction := transaction.NewCreateTransaction(transactionRepo)
+	transactionHandler := handler.NewTransactionHandler(createTransaction)
+
+	r := router.New(accountHandler, transactionHandler)
 
 	server := httptest.NewServer(r)
 	t.Cleanup(func() {
