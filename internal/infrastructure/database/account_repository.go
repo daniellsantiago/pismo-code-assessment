@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 	"database/sql"
+	"errors"
 
 	"github.com/lib/pq"
 	"github.com/nubank/pismo-code-assessment/internal/domain"
@@ -34,4 +35,24 @@ func (r *AccountRepository) Create(ctx context.Context, account *domain.Account)
 		ID:             id,
 		DocumentNumber: account.DocumentNumber,
 	}, nil
+}
+
+func (r *AccountRepository) FindByID(ctx context.Context, ID int64) (*domain.Account, error) {
+	var account domain.Account
+
+	query := `SELECT account_id, document_number FROM accounts WHERE account_id = ($1)`
+
+	err := r.db.QueryRowContext(ctx, query, ID).Scan(
+		&account.ID,
+		&account.DocumentNumber,
+	)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, domain.ErrAccountNotFound
+		}
+
+		return nil, err
+	}
+
+	return &account, err
 }
