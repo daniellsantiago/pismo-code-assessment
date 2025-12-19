@@ -1,14 +1,14 @@
 package domain
 
-var (
-	ErrInvalidDocumentNumber = NewError("document number is required")
-	ErrAccountAlreadyExists  = NewError("account already exists")
-	ErrAccountNotFound       = NewError("account was not found")
-	ErrInvalidOperationType  = NewError("invalid operation type")
-	ErrInvalidAmount         = NewError("amount must be greater than zero")
+type ErrorKind int
+
+const (
+	KindValidation ErrorKind = iota
+	KindNotFound
 )
 
 type Error struct {
+	Kind    ErrorKind
 	Message string
 }
 
@@ -16,6 +16,10 @@ func (e *Error) Error() string {
 	return e.Message
 }
 
-func NewError(message string) *Error {
-	return &Error{Message: message}
-}
+var (
+	ErrInvalidDocumentNumber = &Error{KindValidation, "document number is required"}
+	ErrAccountAlreadyExists  = &Error{KindValidation, "account already exists"}
+	ErrAccountNotFound       = &Error{KindNotFound, "account was not found"}
+	ErrInvalidOperationType  = &Error{KindValidation, "invalid operation type"}
+	ErrInvalidAmount         = &Error{KindValidation, "amount must be greater than zero"}
+)

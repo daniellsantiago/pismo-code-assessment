@@ -61,7 +61,7 @@ func TestCreateAccount_Integration(t *testing.T) {
 		assert.Equal(t, http.StatusUnprocessableEntity, resp2.StatusCode)
 	})
 
-	t.Run("returns 422 when document number is empty", func(t *testing.T) {
+	t.Run("returns 400 when document number is empty", func(t *testing.T) {
 		// given
 		body := bytes.NewBufferString(`{"document_number": ""}`)
 
@@ -71,7 +71,7 @@ func TestCreateAccount_Integration(t *testing.T) {
 		defer resp.Body.Close()
 
 		// then
-		assert.Equal(t, http.StatusUnprocessableEntity, resp.StatusCode)
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 	})
 
 	t.Run("returns 400 when body is invalid", func(t *testing.T) {

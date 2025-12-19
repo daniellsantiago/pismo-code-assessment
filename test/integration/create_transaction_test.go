@@ -101,7 +101,7 @@ func TestCreateTransaction_Integration(t *testing.T) {
 		assert.Equal(t, http.StatusUnprocessableEntity, resp.StatusCode)
 	})
 
-	t.Run("returns 422 when amount is zero", func(t *testing.T) {
+	t.Run("returns 400 when amount is zero", func(t *testing.T) {
 		// given
 		body := bytes.NewBufferString(`{"account_id": ` + toString(accountID) + `, "operation_type_id": 1, "amount": 0}`)
 
@@ -111,7 +111,7 @@ func TestCreateTransaction_Integration(t *testing.T) {
 		defer resp.Body.Close()
 
 		// then
-		assert.Equal(t, http.StatusUnprocessableEntity, resp.StatusCode)
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 	})
 
 	t.Run("returns 400 when body is invalid", func(t *testing.T) {
