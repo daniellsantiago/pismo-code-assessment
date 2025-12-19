@@ -4,8 +4,9 @@ REST API for managing customer accounts and transactions.
 
 ## Requirements
 
-- [Docker](https://www.docker.com/) and Docker Compose
-- [Go 1.24+](https://golang.org/) (for local development)
+- [Go 1.24+](https://golang.org/)
+- [PostgreSQL 16+](https://www.postgresql.org/)
+- [Docker](https://www.docker.com/) and Docker Compose (highly recommended)
 
 ## Getting Started
 
@@ -27,7 +28,7 @@ docker-compose up --build -d
 | Swagger UI | http://localhost:8081 |
 | PostgreSQL | localhost:5432 |
 
-### Run Locally
+### Or run locally
 
 ```bash
 # Start PostgreSQL
@@ -37,79 +38,13 @@ docker-compose up postgres -d
 go run ./cmd/api
 ```
 
-## API Endpoints
+> You can also use your own PostgreSQL instance instead of Docker. Just set the `DATABASE_URL` environment variable with your connection string.
 
-### Accounts
+## API Documentation
 
-#### Create Account
-```bash
-curl -X POST http://localhost:8080/accounts \
-  -H "Content-Type: application/json" \
-  -d '{"document_number": "12345678900"}'
-```
+Full API documentation is available via Swagger UI at http://localhost:8081 when running with Docker.
 
-Response:
-```json
-{
-  "account_id": 1,
-  "document_number": "12345678900"
-}
-```
-
-#### Get Account
-```bash
-curl http://localhost:8080/accounts/1
-```
-
-Response:
-```json
-{
-  "account_id": 1,
-  "document_number": "12345678900"
-}
-```
-
-### Transactions
-
-#### Create Transaction
-```bash
-curl -X POST http://localhost:8080/transactions \
-  -H "Content-Type: application/json" \
-  -d '{"account_id": 1, "operation_type_id": 4, "amount": 123.45}'
-```
-
-Response:
-```json
-{
-  "transaction_id": 1,
-  "account_id": 1,
-  "operation_type_id": 4,
-  "amount": 123.45
-}
-```
-
-### Health Check
-
-```bash
-curl http://localhost:8080/health
-```
-
-Response:
-```json
-{
-  "status": "healthy",
-  "database": "connected"
-}
-```
-
-**Operation Types:**
-
-| ID | Description | Amount |
-|----|-------------|--------|
-| 1 | PURCHASE | Negative |
-| 2 | INSTALLMENT PURCHASE | Negative |
-| 3 | WITHDRAWAL | Negative |
-| 4 | PAYMENT | Positive |
+You can also view the OpenAPI spec directly at [`docs/openapi.yaml`](docs/openapi.yaml).
 
 ## Running Tests
 
@@ -127,36 +62,15 @@ go test ./internal/... -cover
 ## Project Structure
 
 ```
-├── cmd/
-│   └── api/
-│       └── main.go              # Application entrypoint
-├── docs/
-│   └── openapi.yaml             # API documentation
+├── cmd/api/                     # Application entrypoint
+├── docs/                        # OpenAPI documentation
 ├── internal/
 │   ├── domain/                  # Business entities and interfaces
 │   ├── infrastructure/
 │   │   ├── config/              # Configuration
-│   │   ├── database/            # Repository implementations
-│   │   │   └── migrations/      # SQL migrations
-│   │   └── http/
-│   │       ├── dto/             # Request/Response DTOs
-│   │       ├── handler/         # HTTP handlers
-│   │       ├── middleware/      # HTTP middleware (logging, recovery, request ID)
-│   │       ├── response/        # Shared response utilities
-│   │       ├── router/          # Routes
-│   │       └── server/          # HTTP server
+│   │   ├── database/            # Repository implementations and migrations
+│   │   └── http/                # HTTP handlers, middleware, router, server
 │   └── usecase/                 # Application use cases
-├── test/
-│   └── integration/             # Integration tests
-├── docker-compose.yaml
-├── Dockerfile
-└── README.md
+├── pkg/logger/                  # Shared logger package
+└── test/integration/            # Integration tests
 ```
-
-## Tech Stack
-
-- **Language:** Go 1.24
-- **Database:** PostgreSQL 16
-- **Container:** Docker
-- **Documentation:** OpenAPI 3.0
-
