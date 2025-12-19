@@ -29,7 +29,8 @@ func main() {
 
 	accountRepo := database.NewAccountRepository(db)
 	createAccount := account.NewCreateAccount(accountRepo)
-	accountHandler := handler.NewAccountHandler(createAccount)
+	getAccount := account.NewGetAccount(accountRepo)
+	accountHandler := handler.NewAccountHandler(createAccount, getAccount)
 
 	r := router.New(accountHandler)
 

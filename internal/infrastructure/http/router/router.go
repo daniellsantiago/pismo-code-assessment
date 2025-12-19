@@ -10,6 +10,7 @@ func New(accountHandler *handler.AccountHandler) http.Handler {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("POST /accounts", accountHandler.Create)
+	mux.HandleFunc("GET /accounts/{accountId}", accountHandler.Get)
 
 	return mux
 }

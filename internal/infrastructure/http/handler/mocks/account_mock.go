@@ -55,3 +55,42 @@ func (mr *MockaccountCreatorMockRecorder) Execute(ctx, documentNumber any) *gomo
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Execute", reflect.TypeOf((*MockaccountCreator)(nil).Execute), ctx, documentNumber)
 }
+
+// MockaccountGetter is a mock of accountGetter interface.
+type MockaccountGetter struct {
+	ctrl     *gomock.Controller
+	recorder *MockaccountGetterMockRecorder
+	isgomock struct{}
+}
+
+// MockaccountGetterMockRecorder is the mock recorder for MockaccountGetter.
+type MockaccountGetterMockRecorder struct {
+	mock *MockaccountGetter
+}
+
+// NewMockaccountGetter creates a new mock instance.
+func NewMockaccountGetter(ctrl *gomock.Controller) *MockaccountGetter {
+	mock := &MockaccountGetter{ctrl: ctrl}
+	mock.recorder = &MockaccountGetterMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockaccountGetter) EXPECT() *MockaccountGetterMockRecorder {
+	return m.recorder
+}
+
+// Execute mocks base method.
+func (m *MockaccountGetter) Execute(ctx context.Context, accountID int64) (*domain.Account, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Execute", ctx, accountID)
+	ret0, _ := ret[0].(*domain.Account)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Execute indicates an expected call of Execute.
+func (mr *MockaccountGetterMockRecorder) Execute(ctx, accountID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Execute", reflect.TypeOf((*MockaccountGetter)(nil).Execute), ctx, accountID)
+}

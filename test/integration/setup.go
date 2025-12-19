@@ -56,7 +56,8 @@ func SetupTestServer(t *testing.T, ctx context.Context) *TestServer {
 
 	accountRepo := database.NewAccountRepository(db)
 	createAccount := account.NewCreateAccount(accountRepo)
-	accountHandler := handler.NewAccountHandler(createAccount)
+	getAccount := account.NewGetAccount(accountRepo)
+	accountHandler := handler.NewAccountHandler(createAccount, getAccount)
 	r := router.New(accountHandler)
 
 	server := httptest.NewServer(r)

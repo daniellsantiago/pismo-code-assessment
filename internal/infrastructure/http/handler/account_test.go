@@ -3,6 +3,7 @@ package handler
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -19,7 +20,8 @@ func TestAccountHandler_Create(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockCreator := mocks.NewMockaccountCreator(ctrl)
-	handler := NewAccountHandler(mockCreator)
+	mockGetter := mocks.NewMockaccountGetter(ctrl)
+	handler := NewAccountHandler(mockCreator, mockGetter)
 
 	t.Run("creates account successfully", func(t *testing.T) {
 		expectedAccount := &domain.Account{
@@ -82,5 +84,87 @@ func TestAccountHandler_Create(t *testing.T) {
 		handler.Create(rec, req)
 
 		assert.Equal(t, http.StatusUnprocessableEntity, rec.Code)
+	})
+}
+
+func TestAccountHandler_Get(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockCreator := mocks.NewMockaccountCreator(ctrl)
+	mockGetter := mocks.NewMockaccountGetter(ctrl)
+	handler := NewAccountHandler(mockCreator, mockGetter)
+
+	t.Run("retrieves account successfully", func(t *testing.T) {
+		expectedAccount := &domain.Account{
+			ID:             1,
+			DocumentNumber: "12345678900",
+		}
+
+		mockGetter.EXPECT().
+			Execute(gomock.Any(), int64(1)).
+			Return(expectedAccount, nil)
+
+		req := httptest.NewRequest(http.MethodGet, "/accounts/1", nil)
+		req.SetPathValue("accountId", "1")
+		rec := httptest.NewRecorder()
+
+		handler.Get(rec, req)
+
+		assert.Equal(t, http.StatusOK, rec.Code)
+
+		var response dto.GetAccountResponse
+		json.NewDecoder(rec.Body).Decode(&response)
+
+		assert.Equal(t, int64(1), response.AccountID)
+		assert.Equal(t, "12345678900", response.DocumentNumber)
+	})
+
+	t.Run("returns bad request when account id is invalid", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "/accounts/invalid", nil)
+		req.SetPathValue("accountId", "invalid")
+		rec := httptest.NewRecorder()
+
+		handler.Get(rec, req)
+
+		assert.Equal(t, http.StatusBadRequest, rec.Code)
+	})
+
+	t.Run("returns bad request when account id is blank", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "/accounts/", nil)
+		req.SetPathValue("accountId", "")
+		rec := httptest.NewRecorder()
+
+		handler.Get(rec, req)
+
+		assert.Equal(t, http.StatusBadRequest, rec.Code)
+	})
+
+	t.Run("returns not found when account does not exist", func(t *testing.T) {
+		mockGetter.EXPECT().
+			Execute(gomock.Any(), int64(999)).
+			Return(nil, domain.ErrAccountNotFound)
+
+		req := httptest.NewRequest(http.MethodGet, "/accounts/999", nil)
+		req.SetPathValue("accountId", "999")
+		rec := httptest.NewRecorder()
+
+		handler.Get(rec, req)
+
+		assert.Equal(t, http.StatusNotFound, rec.Code)
+	})
+
+	t.Run("returns internal server error when repository fails", func(t *testing.T) {
+		mockGetter.EXPECT().
+			Execute(gomock.Any(), int64(1)).
+			Return(nil, errors.New("database error"))
+
+		req := httptest.NewRequest(http.MethodGet, "/accounts/1", nil)
+		req.SetPathValue("accountId", "1")
+		rec := httptest.NewRecorder()
+
+		handler.Get(rec, req)
+
+		assert.Equal(t, http.StatusInternalServerError, rec.Code)
 	})
 }
