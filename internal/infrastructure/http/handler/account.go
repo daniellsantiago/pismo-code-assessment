@@ -10,6 +10,7 @@ import (
 	"github.com/nubank/pismo-code-assessment/internal/domain"
 	"github.com/nubank/pismo-code-assessment/internal/infrastructure/http/dto"
 	"github.com/nubank/pismo-code-assessment/internal/infrastructure/http/response"
+	"github.com/nubank/pismo-code-assessment/pkg/logger"
 )
 
 type accountCreator interface {
@@ -24,21 +25,21 @@ type accountGetter interface {
 type AccountHandler struct {
 	createAccount accountCreator
 	getAccount    accountGetter
-	logger        *slog.Logger
 }
 
-func NewAccountHandler(createAccount accountCreator, getAccount accountGetter, logger *slog.Logger) *AccountHandler {
+func NewAccountHandler(createAccount accountCreator, getAccount accountGetter) *AccountHandler {
 	return &AccountHandler{
 		createAccount: createAccount,
 		getAccount:    getAccount,
-		logger:        logger,
 	}
 }
 
 func (h *AccountHandler) Create(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
 	var req dto.CreateAccountRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		h.logger.Error("failed to decode request body",
+		logger.Error(ctx, "failed to decode request body",
 			slog.String("error", err.Error()),
 		)
 		response.Error(w, http.StatusBadRequest, "invalid request body")
@@ -50,9 +51,9 @@ func (h *AccountHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	account, err := h.createAccount.Execute(r.Context(), req.DocumentNumber)
+	account, err := h.createAccount.Execute(ctx, req.DocumentNumber)
 	if err != nil {
-		h.logger.Error("failed to create account",
+		logger.Error(ctx, "failed to create account",
 			slog.String("document_number", req.DocumentNumber),
 			slog.String("error", err.Error()),
 		)
@@ -67,6 +68,8 @@ func (h *AccountHandler) Create(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *AccountHandler) Get(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
 	accountIDStr := r.PathValue("accountId")
 	accountID, err := strconv.ParseInt(accountIDStr, 10, 64)
 	if err != nil {
@@ -74,9 +77,9 @@ func (h *AccountHandler) Get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	account, err := h.getAccount.Execute(r.Context(), accountID)
+	account, err := h.getAccount.Execute(ctx, accountID)
 	if err != nil {
-		h.logger.Error("failed to get account",
+		logger.Error(ctx, "failed to get account",
 			slog.Int64("account_id", accountID),
 			slog.String("error", err.Error()),
 		)

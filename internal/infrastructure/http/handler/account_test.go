@@ -4,8 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"io"
-	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -17,17 +15,13 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
-func newTestLogger() *slog.Logger {
-	return slog.New(slog.NewTextHandler(io.Discard, nil))
-}
-
 func TestAccountHandler_Create(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
 	mockCreator := mocks.NewMockaccountCreator(ctrl)
 	mockGetter := mocks.NewMockaccountGetter(ctrl)
-	handler := NewAccountHandler(mockCreator, mockGetter, newTestLogger())
+	handler := NewAccountHandler(mockCreator, mockGetter)
 
 	t.Run("creates account successfully", func(t *testing.T) {
 		expectedAccount := &domain.Account{
@@ -95,7 +89,7 @@ func TestAccountHandler_Get(t *testing.T) {
 
 	mockCreator := mocks.NewMockaccountCreator(ctrl)
 	mockGetter := mocks.NewMockaccountGetter(ctrl)
-	handler := NewAccountHandler(mockCreator, mockGetter, newTestLogger())
+	handler := NewAccountHandler(mockCreator, mockGetter)
 
 	t.Run("retrieves account successfully", func(t *testing.T) {
 		expectedAccount := &domain.Account{

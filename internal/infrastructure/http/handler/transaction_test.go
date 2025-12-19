@@ -21,7 +21,7 @@ func TestTransactionHandler_Create(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockCreator := mocks.NewMocktransactionCreator(ctrl)
-	handler := NewTransactionHandler(mockCreator, newTestLogger())
+	handler := NewTransactionHandler(mockCreator)
 
 	t.Run("creates transaction successfully", func(t *testing.T) {
 		expectedTransaction := &domain.Transaction{

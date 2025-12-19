@@ -88,6 +88,20 @@ Response:
 }
 ```
 
+### Health Check
+
+```bash
+curl http://localhost:8080/health
+```
+
+Response:
+```json
+{
+  "status": "healthy",
+  "database": "connected"
+}
+```
+
 **Operation Types:**
 
 | ID | Description | Amount |
@@ -127,6 +141,7 @@ go test ./internal/... -cover
 │   │   └── http/
 │   │       ├── dto/             # Request/Response DTOs
 │   │       ├── handler/         # HTTP handlers
+│   │       ├── middleware/      # HTTP middleware (logging, recovery, request ID)
 │   │       ├── response/        # Shared response utilities
 │   │       ├── router/          # Routes
 │   │       └── server/          # HTTP server

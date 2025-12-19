@@ -14,19 +14,19 @@ import (
 	"github.com/nubank/pismo-code-assessment/internal/infrastructure/http/handler"
 	"github.com/nubank/pismo-code-assessment/internal/infrastructure/http/router"
 	"github.com/nubank/pismo-code-assessment/internal/infrastructure/http/server"
-	"github.com/nubank/pismo-code-assessment/internal/infrastructure/logger"
 	"github.com/nubank/pismo-code-assessment/internal/usecase/account"
 	"github.com/nubank/pismo-code-assessment/internal/usecase/transaction"
+	"github.com/nubank/pismo-code-assessment/pkg/logger"
 )
 
 func main() {
 	cfg := config.Load()
 
-	log := logger.New(cfg.Environment)
+	logger.Init(cfg.Environment)
 
 	db, err := database.NewPostgresDB(cfg.Database)
 	if err != nil {
-		log.Error("failed to connect to database", "error", err.Error())
+		logger.Default().Error("failed to connect to database", "error", err.Error())
 		os.Exit(1)
 	}
 	defer db.Close()
@@ -38,19 +38,22 @@ func main() {
 	// Account use cases and handler
 	createAccount := account.NewCreateAccount(accountRepo)
 	getAccount := account.NewGetAccount(accountRepo)
-	accountHandler := handler.NewAccountHandler(createAccount, getAccount, log)
+	accountHandler := handler.NewAccountHandler(createAccount, getAccount)
 
 	// Transaction use cases and handler
 	createTransaction := transaction.NewCreateTransaction(transactionRepo)
-	transactionHandler := handler.NewTransactionHandler(createTransaction, log)
+	transactionHandler := handler.NewTransactionHandler(createTransaction)
 
-	r := router.New(accountHandler, transactionHandler)
+	// Health handler
+	healthHandler := handler.NewHealthHandler(db)
+
+	r := router.New(accountHandler, transactionHandler, healthHandler)
 
 	srv := server.New(cfg.Server.Port, r)
 
 	go func() {
 		if err := srv.Start(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			log.Error("failed to start server", "error", err.Error())
+			logger.Default().Error("failed to start server", "error", err.Error())
 			os.Exit(1)
 		}
 	}()
@@ -63,7 +66,7 @@ func main() {
 	defer cancel()
 
 	if err := srv.Shutdown(ctx); err != nil {
-		log.Error("server forced to shutdown", "error", err.Error())
+		logger.Default().Error("server forced to shutdown", "error", err.Error())
 		os.Exit(1)
 	}
 }
