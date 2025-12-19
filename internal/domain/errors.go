@@ -4,6 +4,8 @@ var (
 	ErrInvalidDocumentNumber = NewError("document number is required")
 	ErrAccountAlreadyExists  = NewError("account already exists")
 	ErrAccountNotFound       = NewError("account was not found")
+	ErrInvalidOperationType  = NewError("invalid operation type")
+	ErrInvalidAmount         = NewError("amount must be greater than zero")
 )
 
 type Error struct {
