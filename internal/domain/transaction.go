@@ -29,6 +29,8 @@ func (o OperationType) IsDebit() bool {
 //go:generate mockgen -source=transaction.go -destination=mocks/transaction_mock.go -package=mocks
 type TransactionRepository interface {
 	Create(ctx context.Context, transaction *Transaction) (*Transaction, error)
+	ListByAccountID(ctx context.Context, accountID int64) ([]*Transaction, error)
+	UpdateBalance(ctx context.Context, transaction *Transaction) (*Transaction, error)
 }
 
 type Transaction struct {
@@ -37,9 +39,10 @@ type Transaction struct {
 	OperationTypeID OperationType
 	Amount          float64
 	EventDate       time.Time
+	Balance         float64
 }
 
-func NewTransaction(accountID int64, operationTypeID OperationType, amount float64) (*Transaction, error) {
+func NewTransaction(accountID int64, operationTypeID OperationType, amount float64, balance float64) (*Transaction, error) {
 	if !operationTypeID.IsValid() {
 		return nil, ErrInvalidOperationType
 	}
@@ -57,5 +60,10 @@ func NewTransaction(accountID int64, operationTypeID OperationType, amount float
 		OperationTypeID: operationTypeID,
 		Amount:          amount,
 		EventDate:       time.Now(),
+		Balance:         balance,
 	}, nil
+}
+
+func (t *Transaction) IsNegative() bool {
+	return t.Balance < 0
 }

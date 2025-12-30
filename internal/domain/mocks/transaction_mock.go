@@ -55,3 +55,33 @@ func (mr *MockTransactionRepositoryMockRecorder) Create(ctx, transaction any) *g
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockTransactionRepository)(nil).Create), ctx, transaction)
 }
+
+// ListByAccountID mocks base method.
+func (m *MockTransactionRepository) ListByAccountID(ctx context.Context, accountID int64) ([]*domain.Transaction, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListByAccountID", ctx, accountID)
+	ret0, _ := ret[0].([]*domain.Transaction)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListByAccountID indicates an expected call of ListByAccountID.
+func (mr *MockTransactionRepositoryMockRecorder) ListByAccountID(ctx, accountID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListByAccountID", reflect.TypeOf((*MockTransactionRepository)(nil).ListByAccountID), ctx, accountID)
+}
+
+// UpdateBalance mocks base method.
+func (m *MockTransactionRepository) UpdateBalance(ctx context.Context, transaction *domain.Transaction) (*domain.Transaction, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateBalance", ctx, transaction)
+	ret0, _ := ret[0].(*domain.Transaction)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdateBalance indicates an expected call of UpdateBalance.
+func (mr *MockTransactionRepositoryMockRecorder) UpdateBalance(ctx, transaction any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateBalance", reflect.TypeOf((*MockTransactionRepository)(nil).UpdateBalance), ctx, transaction)
+}

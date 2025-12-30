@@ -69,5 +69,6 @@ func (h *TransactionHandler) Create(w http.ResponseWriter, r *http.Request) {
 		AccountID:       transaction.AccountID,
 		OperationTypeID: int(transaction.OperationTypeID),
 		Amount:          transaction.Amount,
+		Balance:         transaction.Balance,
 	})
 }

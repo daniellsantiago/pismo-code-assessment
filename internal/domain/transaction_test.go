@@ -49,7 +49,7 @@ func TestOperationType_IsDebit(t *testing.T) {
 
 func TestNewTransaction(t *testing.T) {
 	t.Run("creates transaction with negative amount for purchase", func(t *testing.T) {
-		transaction, err := NewTransaction(1, OperationTypePurchase, 50.0)
+		transaction, err := NewTransaction(1, OperationTypePurchase, 50.0, 0)
 
 		assert.NoError(t, err)
 		assert.Equal(t, int64(1), transaction.AccountID)
@@ -58,21 +58,21 @@ func TestNewTransaction(t *testing.T) {
 	})
 
 	t.Run("creates transaction with negative amount for installment purchase", func(t *testing.T) {
-		transaction, err := NewTransaction(1, OperationTypeInstallmentPurchase, 100.0)
+		transaction, err := NewTransaction(1, OperationTypeInstallmentPurchase, 100.0, 0)
 
 		assert.NoError(t, err)
 		assert.Equal(t, -100.0, transaction.Amount)
 	})
 
 	t.Run("creates transaction with negative amount for withdrawal", func(t *testing.T) {
-		transaction, err := NewTransaction(1, OperationTypeWithdrawal, 25.0)
+		transaction, err := NewTransaction(1, OperationTypeWithdrawal, 25.0, 0)
 
 		assert.NoError(t, err)
 		assert.Equal(t, -25.0, transaction.Amount)
 	})
 
 	t.Run("creates transaction with positive amount for payment", func(t *testing.T) {
-		transaction, err := NewTransaction(1, OperationTypePayment, 123.45)
+		transaction, err := NewTransaction(1, OperationTypePayment, 123.45, 0)
 
 		assert.NoError(t, err)
 		assert.Equal(t, int64(1), transaction.AccountID)
@@ -81,21 +81,21 @@ func TestNewTransaction(t *testing.T) {
 	})
 
 	t.Run("returns error for invalid operation type", func(t *testing.T) {
-		transaction, err := NewTransaction(1, OperationType(99), 50.0)
+		transaction, err := NewTransaction(1, OperationType(99), 50.0, 0)
 
 		assert.Nil(t, transaction)
 		assert.ErrorIs(t, err, ErrInvalidOperationType)
 	})
 
 	t.Run("returns error when amount is zero", func(t *testing.T) {
-		transaction, err := NewTransaction(1, OperationTypePurchase, 0)
+		transaction, err := NewTransaction(1, OperationTypePurchase, 0, 0)
 
 		assert.Nil(t, transaction)
 		assert.ErrorIs(t, err, ErrInvalidAmount)
 	})
 
 	t.Run("returns error when amount is negative", func(t *testing.T) {
-		transaction, err := NewTransaction(1, OperationTypePurchase, -50.0)
+		transaction, err := NewTransaction(1, OperationTypePurchase, -50.0, 0)
 
 		assert.Nil(t, transaction)
 		assert.ErrorIs(t, err, ErrInvalidAmount)
